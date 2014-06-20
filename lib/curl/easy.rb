@@ -87,7 +87,7 @@ module Curl
       curl_commands = []
       curl_commands << "curl -v --insecure"
       curl_commands << "-X #{self.request_method.to_s.upcase}"
-      curl_commands << "-d #{self.request_put_data}" if self.request_put_data
+      curl_commands << "-d \"#{self.request_put_data}\"" if self.request_put_data
       curl_commands << headers
       curl_commands << self.url
 
