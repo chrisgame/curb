@@ -87,6 +87,7 @@ module Curl
       curl_commands = []
       curl_commands << "curl -v --insecure"
       curl_commands << "-X #{self.request_method.to_s.upcase}"
+      curl_commands << "-d #{self.request_put_data}" if self.request_put_data
       curl_commands << headers
       curl_commands << self.url
 
@@ -360,9 +361,10 @@ module Curl
       # the +http_get+ call.
       #
       def http_get(*args)
-        self.request_method = :get
-
         c = Curl::Easy.new(*args)
+
+        c.request_method = :get
+
         yield c if block_given?
         c.http_get
         c
@@ -379,9 +381,10 @@ module Curl
       # the +http_head+ call.
       #
       def http_head(*args)
-        self.request_method = :put
-
         c = Curl::Easy.new(*args)
+
+        c.request_method = :put
+
         yield c if block_given?
         c.http_head
         c
@@ -394,10 +397,11 @@ module Curl
       # see easy.http_put
       #
       def http_put(url, data)
-        self.request_method = :put
-        self.request_put_data = data
-
         c = Curl::Easy.new url
+
+        c.request_method = :put
+        c.request_put_data = data
+
         yield c if block_given?
         c.http_put data
         c
@@ -420,10 +424,11 @@ module Curl
       # information.
       #
       def http_post(*args)
-        self.request_method = :post
-
         url = args.shift
         c = Curl::Easy.new url
+
+        c.request_method = :post
+
         yield c if block_given?
         c.http_post(*args)
         c
@@ -440,9 +445,10 @@ module Curl
       # the +http_delete+ call.
       #
       def http_delete(*args)
-        self.request_method = :delete
-
         c = Curl::Easy.new(*args)
+
+        c.request_method = :delete
+
         yield c if block_given?
         c.http_delete
         c
