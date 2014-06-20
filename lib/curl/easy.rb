@@ -1,6 +1,7 @@
 module Curl
   class Easy
     attr_accessor :request_method
+    attr_accessor :request_put_data
 
     alias old_http_put http_put
     def http_put(*args)
@@ -14,6 +15,13 @@ module Curl
       self.request_method = :post
 
       old_http_post(*args)
+    end
+
+    alias old_put_data put_data
+    def put_data(data)
+      self.request_put_data = data
+
+      old_put_data data
     end
 
     alias post http_post
