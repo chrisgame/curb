@@ -1,5 +1,20 @@
 module Curl
   class Easy
+    attr_accessor :request_method
+
+    alias old_http_put http_put
+    def http_put(*args)
+      self.request_method = :put
+
+      old_http_put(*args)
+    end
+
+    alias old_http_post http_post
+    def http_post(*args)
+      self.request_method = :post
+
+      old_http_post(*args)
+    end
 
     alias post http_post
     alias put http_put
@@ -55,7 +70,16 @@ module Curl
     def perform
       self.multi = Curl::Multi.new if self.multi.nil?
       self.multi.add self
-      ret = self.multi.perform
+
+      begin
+        ret = self.multi.perform
+      rescue => e
+        print_curl_command
+      end
+
+      if self.last_result != 0
+        print_curl_command
+      end
 
       if self.last_result != 0 && self.on_failure.nil?
         error = Curl::Easy.error(self.last_result)
@@ -63,6 +87,26 @@ module Curl
       end
 
       ret
+    end
+
+    def print_curl_command
+      headers = nil
+      unless self.headers.empty?
+        headers = self.headers.clone
+        headers.delete("Expect") if headers.keys.include?("Expect")
+        headers = headers.keys.each_with_object("") {|key, str| str << " -H '#{key}:#{headers[key]}'"}.strip
+      end
+
+      curl_commands = []
+      curl_commands << "curl -v --insecure"
+      curl_commands << "-X #{self.request_method.to_s.upcase}"
+      curl_commands << headers
+      curl_commands << self.url
+
+      puts "CURL command used:"
+      puts "**************************"
+      puts curl_commands.compact.join(" ")
+      puts "**************************"
     end
 
     #
@@ -280,6 +324,8 @@ module Curl
     # an exception (defined under Curl::Err) on error.
     #
     def http_get
+      self.request_method = :get
+
       set :httpget, true
       http :GET
     end
