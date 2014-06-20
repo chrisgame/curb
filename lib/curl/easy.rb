@@ -3,27 +3,6 @@ module Curl
     attr_accessor :request_method
     attr_accessor :request_put_data
 
-    alias old_http_put http_put
-    def http_put(*args)
-      self.request_method = :put
-
-      old_http_put(*args)
-    end
-
-    alias old_http_post http_post
-    def http_post(*args)
-      self.request_method = :post
-
-      old_http_post(*args)
-    end
-
-    alias old_put_data put_data
-    def put_data(data)
-      self.request_put_data = data
-
-      old_put_data data
-    end
-
     alias post http_post
     alias put http_put
     alias body body_str
@@ -332,8 +311,6 @@ module Curl
     # an exception (defined under Curl::Err) on error.
     #
     def http_get
-      self.request_method = :get
-
       set :httpget, true
       http :GET
     end
@@ -383,6 +360,8 @@ module Curl
       # the +http_get+ call.
       #
       def http_get(*args)
+        self.request_method = :get
+
         c = Curl::Easy.new(*args)
         yield c if block_given?
         c.http_get
@@ -400,6 +379,8 @@ module Curl
       # the +http_head+ call.
       #
       def http_head(*args)
+        self.request_method = :put
+
         c = Curl::Easy.new(*args)
         yield c if block_given?
         c.http_head
@@ -413,6 +394,9 @@ module Curl
       # see easy.http_put
       #
       def http_put(url, data)
+        self.request_method = :put
+        self.request_put_data = data
+
         c = Curl::Easy.new url
         yield c if block_given?
         c.http_put data
@@ -436,6 +420,8 @@ module Curl
       # information.
       #
       def http_post(*args)
+        self.request_method = :post
+
         url = args.shift
         c = Curl::Easy.new url
         yield c if block_given?
@@ -454,6 +440,8 @@ module Curl
       # the +http_delete+ call.
       #
       def http_delete(*args)
+        self.request_method = :delete
+
         c = Curl::Easy.new(*args)
         yield c if block_given?
         c.http_delete
